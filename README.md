@@ -7,6 +7,7 @@
 - 前端：Vite + React + TailwindCSS（TypeScript）
 - 后端：Go（标准库 net/http）
 - 数据库：SQLite（纯 Go 驱动 `modernc.org/sqlite`，无需 CGO）
+- 部署：宿主机构建 + Docker Compose（Nginx 托管前端、反向代理到 Go 后端）
 
 ## 功能
 
@@ -27,28 +28,69 @@
 │   ├── handlers.go     # HTTP 处理器（登录/注册、账号数据管理）
 │   ├── store.go        # SQLite 数据访问（账号隔离）
 │   ├── models.go       # 数据结构与统计逻辑
-│   └── auth.go         # 会话 token 与密码哈希
+│   ├── auth.go         # 会话 token 与密码哈希
+│   ├── evalflow        # build.sh 生成的二进制（不提交）
+│   ├── Dockerfile      # 后端镜像：Ubuntu + 拷贝二进制运行
+│   └── .dockerignore
 ├── frontend/           # Vite + React + Tailwind 前端
+│   ├── nginx.conf      # Nginx 静态托管与 /api、/uploads 反向代理
+│   ├── dist/           # 前端构建产物（build.sh 生成，挂载给 nginx）
 │   └── src/
-│       ├── pages/      # LoginPage(登录/注册) / AdminPage / SharePage / ResultPage
-│       └── components/ # ItemsTab / FormsTab / ResultCard
-└── start.bat           # Windows 一键启动脚本
+│       ├── pages/      # LoginPage / AdminPage / PublicFormsPage / SharePage / ResultPage
+│       └── components/ # ItemsTab / FormsTab / ResultsTab / ResultCard
+├── build.sh            # 一键构建前端与后端
+├── docker-compose.yml  # 容器编排（backend + Nginx 前端）
+└── README.md
 ```
 
 ## 快速开始
 
-### 方式一：生产模式（单进程，推荐）
+### 方式一：Docker 部署（推荐）
 
-```bat
-:: Windows 双击 start.bat，或手动执行：
-cd frontend && npm install && npm run build
-cd ..\backend && go build -o evalflow.exe .
-evalflow.exe
+前后端都在**宿主机**构建，容器只负责运行：`frontend/dist` 挂载给 Nginx，`backend/evalflow` 打进 Ubuntu 镜像。先构建，再启动：
+
+```bash
+./build.sh                    # 1. 构建后端二进制 + 前端产物
+docker compose up -d --build  # 2. 构建镜像并启动容器
 ```
 
-启动后访问 **http://localhost:8080** ，后端会自动托管前端构建产物（`frontend/dist`）。首次使用在登录页点击「立即注册」创建账号。
+`build.sh` 依次执行：
 
-### 方式二：开发模式（热更新）
+```bash
+cd backend  && go build                       # 生成 backend/evalflow
+cd frontend && npm install && npm run build   # 生成 frontend/dist
+```
+
+启动后访问 **http://localhost:1001** （映射自容器内 Nginx 的 80 端口）。
+
+常用命令：
+
+```bash
+docker compose ps          # 查看状态
+docker compose logs -f     # 查看日志
+docker compose down        # 停止并删除容器
+```
+
+容器说明：
+
+- `backend`：基于 `ubuntu:latest`，`CMD /opt/backend/evalflow`，仅监听容器内 `:8080`，通过 compose 网络由 Nginx 访问
+- 前端容器（`nginx:latest`）：将 `./frontend/dist` 挂载到 `/usr/share/nginx/html`，`./frontend/nginx.conf` 挂载到 `/etc/nginx/conf.d/default.conf`，并把 `/api/`、`/uploads/` 反向代理到 `backend:8080`
+
+> 注意：必须先运行 `./build.sh`，否则 `backend/evalflow` 或 `frontend/dist` 不存在，镜像构建 / Nginx 托管会失败。
+
+数据持久化与迁移：SQLite 数据库绑定挂载到宿主机 `./data/data.db`（容器内 `/data`，由 `DB_PATH` 指定），`docker compose down` 删除容器不会丢失。迁移时只需拷贝整个 `data/` 目录到目标机器相同位置再启动即可。
+
+### 方式二：生产模式（单进程，不用 Docker）
+
+```bash
+cd frontend && npm install && npm run build
+cd ../backend && go build -o evalflow .
+./evalflow
+```
+
+启动后访问 **http://localhost:8080** ，后端会自动托管前端构建产物（`../frontend/dist`）。首次使用在登录页点击「立即注册」创建账号。
+
+### 方式三：开发模式（热更新）
 
 ```bash
 # 终端 1：后端
@@ -60,31 +102,13 @@ cd frontend && npm install && npm run dev
 
 前端开发地址 http://localhost:5173 ，后端 API http://localhost:8080 。
 
-### 方式三：Docker 部署
-
-项目根目录提供 `Dockerfile` 与 `docker-compose.yml`，一条命令即可打包并运行（前端构建 → Go 交叉编译 → 精简运行时镜像，单容器）。
-
-```bash
-docker compose up -d --build
-```
-
-启动后访问 http://localhost:8080 。其他常用命令：
-
-```bash
-docker compose down        # 停止（保留数据）
-docker compose down -v     # 停止并删除数据卷
-docker compose logs -f     # 查看日志
-```
-
-数据持久化：SQLite 数据库（评估项/流程表/评测结果/上传文件 BLOB）保存在命名卷 `data`（容器内 `/data`）中，重建/升级容器不会丢失。若想直接备份查看，可把 `docker-compose.yml` 中的卷改为本机目录（如 `./data:/data`，Linux 下需注意容器内以 uid 10001 运行的文件写权限）。
-
 ## 配置（环境变量）
 
 | 变量 | 默认值 | 说明 |
 | --- | --- | --- |
 | `ADDR` | `:8080` | 监听地址 |
 | `DB_PATH` | `data.db` | SQLite 数据库文件路径 |
-| `FRONTEND_DIST` | `../frontend/dist` | 前端构建产物目录 |
+| `FRONTEND_DIST` | `../frontend/dist` | 前端构建产物目录（存在时后端直接托管前端） |
 
 > 注：升级自旧版（单管理员密码）的数据库，原有数据不属于任何账号，会在首次启动时自动清除；请先注册新账号后重新创建评估项与流程表。
 

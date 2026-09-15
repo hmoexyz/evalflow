@@ -1,0 +1,9 @@
+data.db
+data.db-*
+uploads/
+*.exe
+Dockerfile
+.dockerignore
+*.go
+go.mod
+go.sum
