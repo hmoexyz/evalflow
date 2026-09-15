@@ -5,7 +5,7 @@
 ## 技术栈
 
 - 前端：Vite + React + TailwindCSS（TypeScript）
-- 后端：Go（标准库 net/http）
+- 后端：Go 1.22+（标准库 net/http）
 - 数据库：SQLite（纯 Go 驱动 `modernc.org/sqlite`，无需 CGO）
 - 部署：宿主机构建 + Docker Compose（Nginx 托管前端、反向代理到 Go 后端）
 
