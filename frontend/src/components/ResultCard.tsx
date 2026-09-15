@@ -1,14 +1,14 @@
 import { useRef, useState } from 'react'
 import { toPng } from 'html-to-image'
 import { QRCodeSVG } from 'qrcode.react'
-import type { Submission, WorkflowForm } from '../types'
+import type { RestaurantRatingSubmission, RestaurantRatingForm } from '../types'
 
 export default function ResultCard({
   form,
   submission,
 }: {
-  form: WorkflowForm
-  submission: Submission
+  form: RestaurantRatingForm
+  submission: RestaurantRatingSubmission
 }) {
   const cardRef = useRef<HTMLDivElement>(null)
   const [exporting, setExporting] = useState(false)

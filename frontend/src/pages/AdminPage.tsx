@@ -1,15 +1,10 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { api, clearAuth, getUsername } from '../api'
-import ItemsTab from '../components/ItemsTab'
-import FormsTab from '../components/FormsTab'
-import ResultsTab from '../components/ResultsTab'
-
-type Tab = 'items' | 'forms' | 'results'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { api, clearAuth } from '../api'
 
 export default function AdminPage() {
   const navigate = useNavigate()
-  const [tab, setTab] = useState<Tab>('items')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const [pwdOpen, setPwdOpen] = useState(false)
   const [pwdOld, setPwdOld] = useState('')
@@ -56,60 +51,120 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-3 sm:px-4 py-2 sm:py-0 sm:h-16 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-          <div className="flex items-center gap-3 sm:gap-8 min-w-0">
-            <h1 className="text-base sm:text-lg font-semibold text-slate-900 whitespace-nowrap">
-              评估流程表管理
-            </h1>
-            <nav className="flex gap-0.5 sm:gap-1 min-w-0 overflow-x-auto">
-              {(
-                [
-                  ['items', '评估项'],
-                  ['forms', '流程表'],
-                  ['results', '评测结果'],
-                ] as [Tab, string][]
-              ).map(([key, label]) => (
-                <button
-                  key={key}
-                  onClick={() => setTab(key)}
-                  className={`px-2 sm:px-3.5 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                    tab === key
+    <div className="min-h-screen bg-slate-50 flex">
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-slate-900/40 sm:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      <aside
+        className={`fixed sm:static inset-y-0 left-0 z-40 w-56 shrink-0 bg-white border-r border-slate-200 flex flex-col transform transition-transform duration-200 sm:translate-x-0 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="h-14 sm:h-16 flex items-center justify-between gap-2.5 px-5 border-b border-slate-200">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            </div>
+            <span className="font-semibold text-slate-900 whitespace-nowrap">流程管理系统</span>
+          </div>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            title="收起菜单"
+            className="sm:hidden text-slate-400 hover:text-slate-600 shrink-0"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <nav className="flex-1 p-3 space-y-1">
+          <NavLink
+            to="/admin/restaurant-rating/items"
+            onClick={() => setSidebarOpen(false)}
+            className={({ isActive }) =>
+              `w-full flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                isActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`
+            }
+          >
+            <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11 3v18m0-18c-2.5 0-4 2-4 4.5S8.5 10 11 10m0-7c2.5 0 4 2 4 4.5S13.5 10 11 10m8 0v11M7 14h8" />
+            </svg>
+            <span className="whitespace-nowrap">餐厅评分</span>
+          </NavLink>
+        </nav>
+        <div className="border-t border-slate-200 p-3 space-y-1">
+          <button
+            onClick={() => {
+              setSidebarOpen(false)
+              setPwdOpen(true)
+            }}
+            className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+          >
+            <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+            <span className="whitespace-nowrap">修改密码</span>
+          </button>
+          <button
+            onClick={() => {
+              clearAuth()
+              navigate('/login', { replace: true })
+            }}
+            className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+          >
+            <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span className="whitespace-nowrap">退出登录</span>
+          </button>
+        </div>
+      </aside>
+
+      <div className="flex-1 min-w-0 flex flex-col">
+        <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
+          <div className="px-3 sm:px-6 h-14 sm:h-16 flex items-center gap-0.5 sm:gap-1 overflow-x-auto">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              title="展开菜单"
+              className="sm:hidden shrink-0 p-1.5 mr-1 text-slate-500 hover:text-slate-900"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            {(
+              [
+                ['items', '评估项'],
+                ['forms', '流程表'],
+                ['results', '评估结果'],
+              ] as const
+            ).map(([key, label]) => (
+              <NavLink
+                key={key}
+                to={`/admin/restaurant-rating/${key}`}
+                className={({ isActive }) =>
+                  `px-2 sm:px-3.5 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                    isActive
                       ? 'bg-indigo-50 text-indigo-700'
                       : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </nav>
+                  }`
+                }
+              >
+                {label}
+              </NavLink>
+            ))}
           </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <span className="text-sm text-slate-500 whitespace-nowrap hidden sm:inline">
-              {getUsername() ? `你好，${getUsername()}` : ''}
-            </span>
-            <button
-              onClick={() => setPwdOpen(true)}
-              className="text-sm text-slate-500 hover:text-indigo-700 transition-colors whitespace-nowrap"
-            >
-              修改密码
-            </button>
-            <button
-              onClick={() => {
-                clearAuth()
-                navigate('/login', { replace: true })
-              }}
-              className="text-sm text-slate-500 hover:text-slate-900 transition-colors whitespace-nowrap"
-            >
-              退出登录
-            </button>
-          </div>
-        </div>
-      </header>
-      <main className="max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
-        {tab === 'items' ? <ItemsTab /> : tab === 'forms' ? <FormsTab /> : <ResultsTab />}
-      </main>
+        </header>
+        <main className="flex-1 w-full max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+          <Outlet />
+        </main>
+      </div>
 
       {pwdOpen && (
         <div

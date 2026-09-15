@@ -1,6 +1,6 @@
-# 评估流程表系统 (EvalFlow)
+# 流程管理系统 (EvalFlow)
 
-一个轻量的评估流程表系统：**支持多账号注册**，每个账号拥有自己独立的评估项与流程表。账号创建评估项与流程表后，通过分享链接让访客无需登录即可逐项评分（0~10 分，6 分及以下为不合格）、上传证据文件，并自动生成统计结果（总得分/满分、合格项数/总项数），支持一键导出为图片。
+一个轻量的流程管理系统，目前包含「餐厅评分」子系统：**支持多账号注册**，每个账号拥有自己独立的评估项与流程表。账号创建评估项与流程表后，通过分享链接让访客无需登录即可逐项评分（0~10 分，6 分及以下为不合格）、上传证据文件，并自动生成统计结果（总得分/满分、合格项数/总项数），支持一键导出为图片。
 
 ## 技术栈
 
@@ -119,20 +119,22 @@ cd frontend && npm install && npm run dev
 | POST | `/api/register` | 注册账号，返回 token | - |
 | POST | `/api/login` | 账号登录（用户名+密码），返回 token | - |
 | POST | `/api/password` | 修改密码（需提供当前密码） | 登录 |
-| GET/POST | `/api/items` | 当前账号评估项列表 / 新建 | 登录 |
-| PUT/DELETE | `/api/items/{id}` | 更新 / 删除评估项（仅限本账号） | 登录 |
-| GET/POST | `/api/forms` | 当前账号流程表列表 / 新建 | 登录 |
-| GET/PUT/DELETE | `/api/forms/{id}` | 流程表详情 / 更新 / 删除（仅限本账号） | 登录 |
-| POST | `/api/forms/{id}/publish` | 发布，返回分享 token | 登录 |
-| POST | `/api/forms/{id}/unpublish` | 取消发布 | 登录 |
-| GET | `/api/forms/{id}/submissions` | 提交记录列表（仅限本账号） | 登录 |
-| GET | `/api/submissions` | 本账号全部评测结果 | 登录 |
-| GET | `/api/share` | 所有已发布的流程表列表（公开） | - |
-| GET | `/api/share/{token}` | 访客获取流程表（公开） | - |
-| POST | `/api/share/{token}/submissions` | 访客提交评分（公开） | - |
-| GET | `/api/results/{token}` | 查看评估结果与附件（公开） | - |
+| GET/POST | `/api/restaurant-rating/items` | 餐厅评分评估项列表 / 新建 | 登录 |
+| PUT/DELETE | `/api/restaurant-rating/items/{id}` | 更新 / 删除评估项（仅限本账号） | 登录 |
+| GET/POST | `/api/restaurant-rating/forms` | 餐厅评分流程表列表 / 新建 | 登录 |
+| GET/PUT/DELETE | `/api/restaurant-rating/forms/{id}` | 流程表详情 / 更新 / 删除（仅限本账号） | 登录 |
+| POST | `/api/restaurant-rating/forms/{id}/publish` | 发布，返回分享 token | 登录 |
+| POST | `/api/restaurant-rating/forms/{id}/unpublish` | 取消发布 | 登录 |
+| GET | `/api/restaurant-rating/forms/{id}/submissions` | 提交记录列表（仅限本账号） | 登录 |
+| GET | `/api/restaurant-rating/submissions` | 本账号全部评估结果 | 登录 |
+| GET | `/api/restaurant-rating/share` | 所有已发布的流程表列表（公开） | - |
+| GET | `/api/restaurant-rating/share/{token}` | 访客获取流程表（公开） | - |
+| POST | `/api/restaurant-rating/share/{token}/submissions` | 访客提交评分（公开） | - |
+| GET | `/api/restaurant-rating/results/{token}` | 查看评估结果与附件（公开） | - |
 | POST | `/api/upload` | 上传证据文件（以 BLOB 存入数据库） | - |
 | GET | `/uploads/{name}` | 读取上传的文件内容（BLOB，公开） | - |
+
+> 命名隔离：餐厅评分子系统的数据库表统一以 `restaurant_rating_` 前缀命名（`restaurant_rating_evaluation_items`、`restaurant_rating_workflow_forms`、`restaurant_rating_form_items`、`restaurant_rating_submissions`、`restaurant_rating_submission_scores`），Go 类型以 `RestaurantRating` 前缀命名，API 路由统一挂在 `/api/restaurant-rating/` 下，便于后续新增其它子系统而不产生冲突。升级旧库时会自动将原表重命名为新表。
 
 ## 合格判定
 

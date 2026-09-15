@@ -43,29 +43,29 @@ func (s *Server) routes() *http.ServeMux {
 	// public
 	mux.HandleFunc("POST /api/register", s.handleRegister)
 	mux.HandleFunc("POST /api/login", s.handleLogin)
-	mux.HandleFunc("GET /api/share", s.handleListPublishedForms)
+	mux.HandleFunc("GET /api/restaurant-rating/share", s.handleListPublishedRestaurantRatingForms)
 	mux.Handle("POST /api/upload", s.limitBody(s.handleUpload))
 	mux.HandleFunc("GET /uploads/{name}", s.handleGetUpload)
-	mux.HandleFunc("GET /api/share/{token}", s.handleGetSharedForm)
-	mux.Handle("POST /api/share/{token}/submissions", s.limitBody(s.handleSubmit))
-	mux.HandleFunc("GET /api/results/{token}", s.handleGetResult)
+	mux.HandleFunc("GET /api/restaurant-rating/share/{token}", s.handleGetSharedRestaurantRatingForm)
+	mux.Handle("POST /api/restaurant-rating/share/{token}/submissions", s.limitBody(s.handleSubmitRestaurantRating))
+	mux.HandleFunc("GET /api/restaurant-rating/results/{token}", s.handleGetRestaurantRatingResult)
 
 	// admin
 	mux.Handle("POST /api/password", s.requireAuth(s.handleChangePassword))
-	mux.Handle("GET /api/items", s.requireAuth(s.handleListItems))
-	mux.Handle("POST /api/items", s.requireAuth(s.handleCreateItem))
-	mux.Handle("PUT /api/items/{id}", s.requireAuth(s.handleUpdateItem))
-	mux.Handle("DELETE /api/items/{id}", s.requireAuth(s.handleDeleteItem))
+	mux.Handle("GET /api/restaurant-rating/items", s.requireAuth(s.handleListRestaurantRatingItems))
+	mux.Handle("POST /api/restaurant-rating/items", s.requireAuth(s.handleCreateRestaurantRatingItem))
+	mux.Handle("PUT /api/restaurant-rating/items/{id}", s.requireAuth(s.handleUpdateRestaurantRatingItem))
+	mux.Handle("DELETE /api/restaurant-rating/items/{id}", s.requireAuth(s.handleDeleteRestaurantRatingItem))
 
-	mux.Handle("GET /api/forms", s.requireAuth(s.handleListForms))
-	mux.Handle("POST /api/forms", s.requireAuth(s.handleCreateForm))
-	mux.Handle("GET /api/forms/{id}", s.requireAuth(s.handleGetForm))
-	mux.Handle("PUT /api/forms/{id}", s.requireAuth(s.handleUpdateForm))
-	mux.Handle("DELETE /api/forms/{id}", s.requireAuth(s.handleDeleteForm))
-	mux.Handle("POST /api/forms/{id}/publish", s.requireAuth(s.handlePublishForm))
-	mux.Handle("POST /api/forms/{id}/unpublish", s.requireAuth(s.handleUnpublishForm))
-	mux.Handle("GET /api/forms/{id}/submissions", s.requireAuth(s.handleListSubmissions))
-	mux.Handle("GET /api/submissions", s.requireAuth(s.handleListAllSubmissions))
+	mux.Handle("GET /api/restaurant-rating/forms", s.requireAuth(s.handleListRestaurantRatingForms))
+	mux.Handle("POST /api/restaurant-rating/forms", s.requireAuth(s.handleCreateRestaurantRatingForm))
+	mux.Handle("GET /api/restaurant-rating/forms/{id}", s.requireAuth(s.handleGetRestaurantRatingForm))
+	mux.Handle("PUT /api/restaurant-rating/forms/{id}", s.requireAuth(s.handleUpdateRestaurantRatingForm))
+	mux.Handle("DELETE /api/restaurant-rating/forms/{id}", s.requireAuth(s.handleDeleteRestaurantRatingForm))
+	mux.Handle("POST /api/restaurant-rating/forms/{id}/publish", s.requireAuth(s.handlePublishRestaurantRatingForm))
+	mux.Handle("POST /api/restaurant-rating/forms/{id}/unpublish", s.requireAuth(s.handleUnpublishRestaurantRatingForm))
+	mux.Handle("GET /api/restaurant-rating/forms/{id}/submissions", s.requireAuth(s.handleListRestaurantRatingSubmissions))
+	mux.Handle("GET /api/restaurant-rating/submissions", s.requireAuth(s.handleListAllRestaurantRatingSubmissions))
 
 	return mux
 }
@@ -217,8 +217,8 @@ func (s *Server) handleChangePassword(w http.ResponseWriter, r *http.Request) {
 
 // ---- items ----
 
-func (s *Server) handleListItems(w http.ResponseWriter, r *http.Request) {
-	items, err := s.store.listItems(currentUser(r))
+func (s *Server) handleListRestaurantRatingItems(w http.ResponseWriter, r *http.Request) {
+	items, err := s.store.listRestaurantRatingItems(currentUser(r))
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, "读取评估项失败")
 		return
@@ -226,7 +226,7 @@ func (s *Server) handleListItems(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, items)
 }
 
-func (s *Server) handleCreateItem(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleCreateRestaurantRatingItem(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
@@ -240,7 +240,7 @@ func (s *Server) handleCreateItem(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusBadRequest, "名称不能为空")
 		return
 	}
-	item, err := s.store.createItem(currentUser(r), req.Name, strings.TrimSpace(req.Description))
+	item, err := s.store.createRestaurantRatingItem(currentUser(r), req.Name, strings.TrimSpace(req.Description))
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, "创建评估项失败")
 		return
@@ -248,7 +248,7 @@ func (s *Server) handleCreateItem(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, item)
 }
 
-func (s *Server) handleUpdateItem(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleUpdateRestaurantRatingItem(w http.ResponseWriter, r *http.Request) {
 	id, err := pathID(r)
 	if err != nil {
 		writeErr(w, http.StatusBadRequest, "无效的 ID")
@@ -267,7 +267,7 @@ func (s *Server) handleUpdateItem(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusBadRequest, "名称不能为空")
 		return
 	}
-	if err := s.store.updateItem(currentUser(r), id, req.Name, strings.TrimSpace(req.Description)); err != nil {
+	if err := s.store.updateRestaurantRatingItem(currentUser(r), id, req.Name, strings.TrimSpace(req.Description)); err != nil {
 		if isNotFound(err) {
 			writeErr(w, http.StatusNotFound, "评估项不存在")
 			return
@@ -275,7 +275,7 @@ func (s *Server) handleUpdateItem(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusInternalServerError, "更新评估项失败")
 		return
 	}
-	item, err := s.store.getItem(id, currentUser(r))
+	item, err := s.store.getRestaurantRatingItem(id, currentUser(r))
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, "读取评估项失败")
 		return
@@ -283,13 +283,13 @@ func (s *Server) handleUpdateItem(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, item)
 }
 
-func (s *Server) handleDeleteItem(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleDeleteRestaurantRatingItem(w http.ResponseWriter, r *http.Request) {
 	id, err := pathID(r)
 	if err != nil {
 		writeErr(w, http.StatusBadRequest, "无效的 ID")
 		return
 	}
-	if err := s.store.deleteItem(currentUser(r), id); err != nil {
+	if err := s.store.deleteRestaurantRatingItem(currentUser(r), id); err != nil {
 		if isNotFound(err) {
 			writeErr(w, http.StatusNotFound, "评估项不存在")
 			return
@@ -302,8 +302,8 @@ func (s *Server) handleDeleteItem(w http.ResponseWriter, r *http.Request) {
 
 // ---- forms ----
 
-func (s *Server) handleListForms(w http.ResponseWriter, r *http.Request) {
-	forms, err := s.store.listForms(currentUser(r))
+func (s *Server) handleListRestaurantRatingForms(w http.ResponseWriter, r *http.Request) {
+	forms, err := s.store.listRestaurantRatingForms(currentUser(r))
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, "读取流程表失败")
 		return
@@ -311,9 +311,9 @@ func (s *Server) handleListForms(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, forms)
 }
 
-// ownedItemIDs returns the set of item ids belonging to the given user.
-func (s *Server) ownedItemIDs(userID int64) (map[int64]bool, error) {
-	items, err := s.store.listItems(userID)
+// ownedRestaurantRatingItemIDs returns the set of item ids belonging to the given user.
+func (s *Server) ownedRestaurantRatingItemIDs(userID int64) (map[int64]bool, error) {
+	items, err := s.store.listRestaurantRatingItems(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -324,7 +324,7 @@ func (s *Server) ownedItemIDs(userID int64) (map[int64]bool, error) {
 	return ids, nil
 }
 
-func (s *Server) handleCreateForm(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleCreateRestaurantRatingForm(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Name    string  `json:"name"`
 		ItemIDs []int64 `json:"item_ids"`
@@ -343,7 +343,7 @@ func (s *Server) handleCreateForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userID := currentUser(r)
-	owned, err := s.ownedItemIDs(userID)
+	owned, err := s.ownedRestaurantRatingItemIDs(userID)
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, "读取评估项失败")
 		return
@@ -354,7 +354,7 @@ func (s *Server) handleCreateForm(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	form, err := s.store.createForm(userID, req.Name, req.ItemIDs)
+	form, err := s.store.createRestaurantRatingForm(userID, req.Name, req.ItemIDs)
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, "创建流程表失败")
 		return
@@ -362,13 +362,13 @@ func (s *Server) handleCreateForm(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, form)
 }
 
-func (s *Server) handleGetForm(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleGetRestaurantRatingForm(w http.ResponseWriter, r *http.Request) {
 	id, err := pathID(r)
 	if err != nil {
 		writeErr(w, http.StatusBadRequest, "无效的 ID")
 		return
 	}
-	form, err := s.store.getForm(id, currentUser(r))
+	form, err := s.store.getRestaurantRatingForm(id, currentUser(r))
 	if err != nil {
 		if isNotFound(err) {
 			writeErr(w, http.StatusNotFound, "流程表不存在")
@@ -380,7 +380,7 @@ func (s *Server) handleGetForm(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, form)
 }
 
-func (s *Server) handleUpdateForm(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleUpdateRestaurantRatingForm(w http.ResponseWriter, r *http.Request) {
 	id, err := pathID(r)
 	if err != nil {
 		writeErr(w, http.StatusBadRequest, "无效的 ID")
@@ -404,7 +404,7 @@ func (s *Server) handleUpdateForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userID := currentUser(r)
-	owned, err := s.ownedItemIDs(userID)
+	owned, err := s.ownedRestaurantRatingItemIDs(userID)
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, "读取评估项失败")
 		return
@@ -415,7 +415,7 @@ func (s *Server) handleUpdateForm(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	if err := s.store.updateForm(userID, id, req.Name, req.ItemIDs); err != nil {
+	if err := s.store.updateRestaurantRatingForm(userID, id, req.Name, req.ItemIDs); err != nil {
 		if isNotFound(err) {
 			writeErr(w, http.StatusNotFound, "流程表不存在")
 			return
@@ -423,7 +423,7 @@ func (s *Server) handleUpdateForm(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusInternalServerError, "更新流程表失败")
 		return
 	}
-	form, err := s.store.getForm(id, userID)
+	form, err := s.store.getRestaurantRatingForm(id, userID)
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, "读取流程表失败")
 		return
@@ -431,13 +431,13 @@ func (s *Server) handleUpdateForm(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, form)
 }
 
-func (s *Server) handleDeleteForm(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleDeleteRestaurantRatingForm(w http.ResponseWriter, r *http.Request) {
 	id, err := pathID(r)
 	if err != nil {
 		writeErr(w, http.StatusBadRequest, "无效的 ID")
 		return
 	}
-	if err := s.store.deleteForm(currentUser(r), id); err != nil {
+	if err := s.store.deleteRestaurantRatingForm(currentUser(r), id); err != nil {
 		if isNotFound(err) {
 			writeErr(w, http.StatusNotFound, "流程表不存在")
 			return
@@ -448,14 +448,14 @@ func (s *Server) handleDeleteForm(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (s *Server) handlePublishForm(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handlePublishRestaurantRatingForm(w http.ResponseWriter, r *http.Request) {
 	id, err := pathID(r)
 	if err != nil {
 		writeErr(w, http.StatusBadRequest, "无效的 ID")
 		return
 	}
 	tok := randomHex(16)
-	if err := s.store.setShareToken(currentUser(r), id, &tok); err != nil {
+	if err := s.store.setRestaurantRatingShareToken(currentUser(r), id, &tok); err != nil {
 		if isNotFound(err) {
 			writeErr(w, http.StatusNotFound, "流程表不存在")
 			return
@@ -466,13 +466,13 @@ func (s *Server) handlePublishForm(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"token": tok, "url": "/share/" + tok})
 }
 
-func (s *Server) handleUnpublishForm(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleUnpublishRestaurantRatingForm(w http.ResponseWriter, r *http.Request) {
 	id, err := pathID(r)
 	if err != nil {
 		writeErr(w, http.StatusBadRequest, "无效的 ID")
 		return
 	}
-	if err := s.store.setShareToken(currentUser(r), id, nil); err != nil {
+	if err := s.store.setRestaurantRatingShareToken(currentUser(r), id, nil); err != nil {
 		if isNotFound(err) {
 			writeErr(w, http.StatusNotFound, "流程表不存在")
 			return
@@ -485,22 +485,22 @@ func (s *Server) handleUnpublishForm(w http.ResponseWriter, r *http.Request) {
 
 // ---- submissions ----
 
-func (s *Server) handleListAllSubmissions(w http.ResponseWriter, r *http.Request) {
-	subs, err := s.store.listAllSubmissions(currentUser(r))
+func (s *Server) handleListAllRestaurantRatingSubmissions(w http.ResponseWriter, r *http.Request) {
+	subs, err := s.store.listAllRestaurantRatingSubmissions(currentUser(r))
 	if err != nil {
-		writeErr(w, http.StatusInternalServerError, "读取评测结果失败")
+		writeErr(w, http.StatusInternalServerError, "读取评估结果失败")
 		return
 	}
 	writeJSON(w, http.StatusOK, subs)
 }
 
-func (s *Server) handleListSubmissions(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleListRestaurantRatingSubmissions(w http.ResponseWriter, r *http.Request) {
 	id, err := pathID(r)
 	if err != nil {
 		writeErr(w, http.StatusBadRequest, "无效的 ID")
 		return
 	}
-	if _, err := s.store.getForm(id, currentUser(r)); err != nil {
+	if _, err := s.store.getRestaurantRatingForm(id, currentUser(r)); err != nil {
 		if isNotFound(err) {
 			writeErr(w, http.StatusNotFound, "流程表不存在")
 			return
@@ -508,7 +508,7 @@ func (s *Server) handleListSubmissions(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusInternalServerError, "读取流程表失败")
 		return
 	}
-	subs, err := s.store.listSubmissions(id)
+	subs, err := s.store.listRestaurantRatingSubmissions(id)
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, "读取提交记录失败")
 		return
@@ -518,8 +518,8 @@ func (s *Server) handleListSubmissions(w http.ResponseWriter, r *http.Request) {
 
 // ---- public share ----
 
-func (s *Server) handleListPublishedForms(w http.ResponseWriter, r *http.Request) {
-	forms, err := s.store.listPublishedForms()
+func (s *Server) handleListPublishedRestaurantRatingForms(w http.ResponseWriter, r *http.Request) {
+	forms, err := s.store.listPublishedRestaurantRatingForms()
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, "读取流程表失败")
 		return
@@ -527,9 +527,9 @@ func (s *Server) handleListPublishedForms(w http.ResponseWriter, r *http.Request
 	writeJSON(w, http.StatusOK, forms)
 }
 
-func (s *Server) handleGetSharedForm(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleGetSharedRestaurantRatingForm(w http.ResponseWriter, r *http.Request) {
 	token := r.PathValue("token")
-	form, err := s.store.formByToken(token)
+	form, err := s.store.restaurantRatingFormByToken(token)
 	if err != nil {
 		writeErr(w, http.StatusNotFound, "流程表不存在或未发布")
 		return
@@ -537,14 +537,14 @@ func (s *Server) handleGetSharedForm(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, form)
 }
 
-func (s *Server) handleSubmit(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleSubmitRestaurantRating(w http.ResponseWriter, r *http.Request) {
 	token := r.PathValue("token")
-	form, err := s.store.formByToken(token)
+	form, err := s.store.restaurantRatingFormByToken(token)
 	if err != nil {
 		writeErr(w, http.StatusNotFound, "流程表不存在或未发布")
 		return
 	}
-	validItems, err := s.store.formItemIDs(form.ID)
+	validItems, err := s.store.restaurantRatingFormItemIDs(form.ID)
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, "读取流程表失败")
 		return
@@ -583,7 +583,7 @@ func (s *Server) handleSubmit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	seen := make(map[int64]bool, len(req.Scores))
-	scores := make([]newScore, 0, len(req.Scores))
+	scores := make([]newRestaurantRatingScore, 0, len(req.Scores))
 	for _, sc := range req.Scores {
 		if !validItems[sc.ItemID] {
 			writeErr(w, http.StatusBadRequest, "评分中包含不属于该流程表的评估项")
@@ -610,10 +610,10 @@ func (s *Server) handleSubmit(w http.ResponseWriter, r *http.Request) {
 			}
 			evs = append(evs, ev)
 		}
-		scores = append(scores, newScore{ItemID: sc.ItemID, Score: sc.Score, Evidence: evs})
+		scores = append(scores, newRestaurantRatingScore{ItemID: sc.ItemID, Score: sc.Score, Evidence: evs})
 	}
 
-	sub, err := s.store.createSubmission(form.ID, req.Restaurant, req.Evaluator, scores)
+	sub, err := s.store.createRestaurantRatingSubmission(form.ID, req.Restaurant, req.Evaluator, scores)
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, "保存评分失败")
 		return
@@ -623,9 +623,9 @@ func (s *Server) handleSubmit(w http.ResponseWriter, r *http.Request) {
 
 // ---- public result view ----
 
-func (s *Server) handleGetResult(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleGetRestaurantRatingResult(w http.ResponseWriter, r *http.Request) {
 	token := r.PathValue("token")
-	form, sub, err := s.store.submissionByViewToken(token)
+	form, sub, err := s.store.restaurantRatingSubmissionByViewToken(token)
 	if err != nil {
 		writeErr(w, http.StatusNotFound, "结果不存在")
 		return

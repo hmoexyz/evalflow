@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
-import type { WorkflowForm } from '../types'
+import type { RestaurantRatingForm } from '../types'
 
 const IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']
 
@@ -13,7 +13,7 @@ function isImage(url: string) {
 export default function SharePage() {
   const { token } = useParams<{ token: string }>()
   const navigate = useNavigate()
-  const [form, setForm] = useState<WorkflowForm | null>(null)
+  const [form, setForm] = useState<RestaurantRatingForm | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [restaurant, setRestaurant] = useState('')
   const [evaluator, setEvaluator] = useState('')
@@ -26,7 +26,7 @@ export default function SharePage() {
   useEffect(() => {
     if (!token) return
     api
-      .getSharedForm(token)
+      .getSharedRestaurantRatingForm(token)
       .then(setForm)
       .catch(() => setNotFound(true))
   }, [token])
@@ -81,7 +81,7 @@ export default function SharePage() {
     setSubmitting(true)
     setError('')
     try {
-      const { submission: sub } = await api.submit(
+      const { submission: sub } = await api.submitRestaurantRating(
         token!,
         restaurant.trim(),
         evaluator.trim(),

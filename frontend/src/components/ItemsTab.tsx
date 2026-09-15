@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
-import type { EvaluationItem } from '../types'
+import type { RestaurantRatingItem } from '../types'
 
 export default function ItemsTab() {
-  const [items, setItems] = useState<EvaluationItem[]>([])
+  const [items, setItems] = useState<RestaurantRatingItem[]>([])
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -12,7 +12,7 @@ export default function ItemsTab() {
   const [error, setError] = useState('')
 
   async function load() {
-    setItems(await api.listItems())
+    setItems(await api.listRestaurantRatingItems())
   }
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function ItemsTab() {
     e.preventDefault()
     setError('')
     try {
-      await api.createItem(name.trim(), description.trim())
+      await api.createRestaurantRatingItem(name.trim(), description.trim())
       setName('')
       setDescription('')
       await load()
@@ -35,7 +35,7 @@ export default function ItemsTab() {
   async function handleSave(id: number) {
     setError('')
     try {
-      await api.updateItem(id, editName.trim(), editDescription.trim())
+      await api.updateRestaurantRatingItem(id, editName.trim(), editDescription.trim())
       setEditingId(null)
       await load()
     } catch (err) {
@@ -47,7 +47,7 @@ export default function ItemsTab() {
     if (!window.confirm('确定删除该评估项吗？已在流程表中的关联也会被移除。')) return
     setError('')
     try {
-      await api.deleteItem(id)
+      await api.deleteRestaurantRatingItem(id)
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : '删除失败')

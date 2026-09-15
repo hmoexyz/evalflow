@@ -1,22 +1,22 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
-import type { EvaluationItem, Submission, WorkflowForm } from '../types'
+import type { RestaurantRatingItem, RestaurantRatingSubmission, RestaurantRatingForm } from '../types'
 
 export default function FormsTab() {
-  const [forms, setForms] = useState<WorkflowForm[]>([])
-  const [items, setItems] = useState<EvaluationItem[]>([])
+  const [forms, setForms] = useState<RestaurantRatingForm[]>([])
+  const [items, setItems] = useState<RestaurantRatingItem[]>([])
   const [error, setError] = useState('')
 
-  const [editing, setEditing] = useState<WorkflowForm | null>(null)
+  const [editing, setEditing] = useState<RestaurantRatingForm | null>(null)
   const [formName, setFormName] = useState('')
   const [selectedIds, setSelectedIds] = useState<number[]>([])
   const [itemQuery, setItemQuery] = useState('')
-  const [viewing, setViewing] = useState<WorkflowForm | null>(null)
-  const [submissions, setSubmissions] = useState<Submission[]>([])
+  const [viewing, setViewing] = useState<RestaurantRatingForm | null>(null)
+  const [submissions, setSubmissions] = useState<RestaurantRatingSubmission[]>([])
   const [copiedId, setCopiedId] = useState<number | null>(null)
 
   async function load() {
-    const [f, i] = await Promise.all([api.listForms(), api.listItems()])
+    const [f, i] = await Promise.all([api.listRestaurantRatingForms(), api.listRestaurantRatingItems()])
     setForms(f)
     setItems(i)
   }
@@ -32,7 +32,7 @@ export default function FormsTab() {
     setItemQuery('')
   }
 
-  function openEdit(form: WorkflowForm) {
+  function openEdit(form: RestaurantRatingForm) {
     setEditing(form)
     setFormName(form.name)
     setSelectedIds((form.items ?? []).map((it) => it.id))
@@ -51,9 +51,9 @@ export default function FormsTab() {
     setError('')
     try {
       if (editing?.id) {
-        await api.updateForm(editing.id, formName.trim(), selectedIds)
+        await api.updateRestaurantRatingForm(editing.id, formName.trim(), selectedIds)
       } else {
-        await api.createForm(formName.trim(), selectedIds)
+        await api.createRestaurantRatingForm(formName.trim(), selectedIds)
       }
       setEditing(null)
       await load()
@@ -66,20 +66,20 @@ export default function FormsTab() {
     if (!window.confirm('确定删除该流程表吗？相关的提交记录也会被删除。')) return
     setError('')
     try {
-      await api.deleteForm(id)
+      await api.deleteRestaurantRatingForm(id)
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : '删除失败')
     }
   }
 
-  async function handlePublish(form: WorkflowForm) {
+  async function handlePublish(form: RestaurantRatingForm) {
     setError('')
     try {
       if (form.published) {
-        await api.unpublishForm(form.id)
+        await api.unpublishRestaurantRatingForm(form.id)
       } else {
-        await api.publishForm(form.id)
+        await api.publishRestaurantRatingForm(form.id)
       }
       await load()
     } catch (err) {
@@ -87,16 +87,16 @@ export default function FormsTab() {
     }
   }
 
-  async function openSubmissions(form: WorkflowForm) {
+  async function openSubmissions(form: RestaurantRatingForm) {
     setViewing(form)
-    setSubmissions(await api.listSubmissions(form.id))
+    setSubmissions(await api.listRestaurantRatingSubmissions(form.id))
   }
 
-  function shareUrl(form: WorkflowForm) {
+  function shareUrl(form: RestaurantRatingForm) {
     return `${window.location.origin}/share/${form.share_token}`
   }
 
-  async function copyShare(form: WorkflowForm) {
+  async function copyShare(form: RestaurantRatingForm) {
     await navigator.clipboard.writeText(shareUrl(form))
     setCopiedId(form.id)
     setTimeout(() => setCopiedId((id) => (id === form.id ? null : id)), 2000)

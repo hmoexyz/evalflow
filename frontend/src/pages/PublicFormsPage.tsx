@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
-import type { WorkflowForm } from '../types'
+import type { RestaurantRatingForm } from '../types'
 
 export default function PublicFormsPage() {
-  const [forms, setForms] = useState<WorkflowForm[] | null>(null)
+  const [forms, setForms] = useState<RestaurantRatingForm[] | null>(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
     api
-      .listPublishedForms()
+      .listPublishedRestaurantRatingForms()
       .then(setForms)
       .catch(() => setError('加载失败，请稍后重试'))
   }, [])
@@ -24,7 +24,7 @@ export default function PublicFormsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
-            <span className="font-semibold text-slate-900">评估流程表</span>
+            <span className="font-semibold text-slate-900">流程管理系统</span>
           </div>
           <Link
             to="/login"

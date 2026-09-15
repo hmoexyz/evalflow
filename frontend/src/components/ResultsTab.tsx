@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
-import type { Submission, WorkflowForm } from '../types'
+import type { RestaurantRatingSubmission, RestaurantRatingForm } from '../types'
 
 export default function ResultsTab() {
-  const [subs, setSubs] = useState<Submission[]>([])
-  const [forms, setForms] = useState<WorkflowForm[]>([])
+  const [subs, setSubs] = useState<RestaurantRatingSubmission[]>([])
+  const [forms, setForms] = useState<RestaurantRatingForm[]>([])
   const [filter, setFilter] = useState<number>(0)
   const [error, setError] = useState('')
 
   async function load() {
-    const [s, f] = await Promise.all([api.listAllSubmissions(), api.listForms()])
+    const [s, f] = await Promise.all([api.listAllRestaurantRatingSubmissions(), api.listRestaurantRatingForms()])
     setSubs(s)
     setForms(f)
   }
@@ -27,7 +27,7 @@ export default function ResultsTab() {
       <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
           <h2 className="text-base font-semibold text-slate-900">
-            评测结果列表
+            评估结果列表
             <span className="ml-2 text-sm font-normal text-slate-500">{filtered.length} 条</span>
           </h2>
           {forms.length > 0 && (
@@ -47,7 +47,7 @@ export default function ResultsTab() {
         </div>
 
         {filtered.length === 0 ? (
-          <p className="text-sm text-slate-500 py-8 text-center">暂无评测结果</p>
+          <p className="text-sm text-slate-500 py-8 text-center">暂无评估结果</p>
         ) : (
           <ul className="divide-y divide-slate-100">
             {filtered.map((sub) => {

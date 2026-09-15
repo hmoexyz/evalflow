@@ -1,4 +1,8 @@
-import type { EvaluationItem, Submission, WorkflowForm } from './types'
+import type {
+  RestaurantRatingForm,
+  RestaurantRatingItem,
+  RestaurantRatingSubmission,
+} from './types'
 
 const TOKEN_KEY = 'evalflow_token'
 const USERNAME_KEY = 'evalflow_username'
@@ -65,39 +69,50 @@ export const api = {
       body: JSON.stringify({ old_password, new_password }),
     }),
 
-  listItems: () => req<EvaluationItem[]>('/api/items'),
-  createItem: (name: string, description: string) =>
-    req<EvaluationItem>('/api/items', { method: 'POST', body: JSON.stringify({ name, description }) }),
-  updateItem: (id: number, name: string, description: string) =>
-    req<EvaluationItem>(`/api/items/${id}`, { method: 'PUT', body: JSON.stringify({ name, description }) }),
-  deleteItem: (id: number) => req<void>(`/api/items/${id}`, { method: 'DELETE' }),
+  listRestaurantRatingItems: () => req<RestaurantRatingItem[]>('/api/restaurant-rating/items'),
+  createRestaurantRatingItem: (name: string, description: string) =>
+    req<RestaurantRatingItem>('/api/restaurant-rating/items', {
+      method: 'POST',
+      body: JSON.stringify({ name, description }),
+    }),
+  updateRestaurantRatingItem: (id: number, name: string, description: string) =>
+    req<RestaurantRatingItem>(`/api/restaurant-rating/items/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ name, description }),
+    }),
+  deleteRestaurantRatingItem: (id: number) => req<void>(`/api/restaurant-rating/items/${id}`, { method: 'DELETE' }),
 
-  listForms: () => req<WorkflowForm[]>('/api/forms'),
-  createForm: (name: string, item_ids: number[]) =>
-    req<WorkflowForm>('/api/forms', { method: 'POST', body: JSON.stringify({ name, item_ids }) }),
-  updateForm: (id: number, name: string, item_ids: number[]) =>
-    req<WorkflowForm>(`/api/forms/${id}`, { method: 'PUT', body: JSON.stringify({ name, item_ids }) }),
-  deleteForm: (id: number) => req<void>(`/api/forms/${id}`, { method: 'DELETE' }),
-  publishForm: (id: number) =>
-    req<{ token: string; url: string }>(`/api/forms/${id}/publish`, { method: 'POST' }),
-  unpublishForm: (id: number) => req<void>(`/api/forms/${id}/unpublish`, { method: 'POST' }),
-  listSubmissions: (id: number) => req<Submission[]>(`/api/forms/${id}/submissions`),
-  listAllSubmissions: () => req<Submission[]>('/api/submissions'),
+  listRestaurantRatingForms: () => req<RestaurantRatingForm[]>('/api/restaurant-rating/forms'),
+  createRestaurantRatingForm: (name: string, item_ids: number[]) =>
+    req<RestaurantRatingForm>('/api/restaurant-rating/forms', { method: 'POST', body: JSON.stringify({ name, item_ids }) }),
+  updateRestaurantRatingForm: (id: number, name: string, item_ids: number[]) =>
+    req<RestaurantRatingForm>(`/api/restaurant-rating/forms/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ name, item_ids }),
+    }),
+  deleteRestaurantRatingForm: (id: number) => req<void>(`/api/restaurant-rating/forms/${id}`, { method: 'DELETE' }),
+  publishRestaurantRatingForm: (id: number) =>
+    req<{ token: string; url: string }>(`/api/restaurant-rating/forms/${id}/publish`, { method: 'POST' }),
+  unpublishRestaurantRatingForm: (id: number) =>
+    req<void>(`/api/restaurant-rating/forms/${id}/unpublish`, { method: 'POST' }),
+  listRestaurantRatingSubmissions: (id: number) =>
+    req<RestaurantRatingSubmission[]>(`/api/restaurant-rating/forms/${id}/submissions`),
+  listAllRestaurantRatingSubmissions: () => req<RestaurantRatingSubmission[]>('/api/restaurant-rating/submissions'),
 
-  getSharedForm: (token: string) => req<WorkflowForm>(`/api/share/${token}`),
-  listPublishedForms: () => req<WorkflowForm[]>('/api/share'),
-  submit: (
+  getSharedRestaurantRatingForm: (token: string) => req<RestaurantRatingForm>(`/api/restaurant-rating/share/${token}`),
+  listPublishedRestaurantRatingForms: () => req<RestaurantRatingForm[]>('/api/restaurant-rating/share'),
+  submitRestaurantRating: (
     token: string,
     restaurant: string,
     evaluator: string,
     scores: { item_id: number; score: number; evidence: string[] }[],
   ) =>
-    req<{ submission: Submission }>(`/api/share/${token}/submissions`, {
+    req<{ submission: RestaurantRatingSubmission }>(`/api/restaurant-rating/share/${token}/submissions`, {
       method: 'POST',
       body: JSON.stringify({ restaurant, evaluator, scores }),
     }),
-  getResult: (token: string) =>
-    req<{ form: WorkflowForm; submission: Submission }>(`/api/results/${token}`),
+  getRestaurantRatingResult: (token: string) =>
+    req<{ form: RestaurantRatingForm; submission: RestaurantRatingSubmission }>(`/api/restaurant-rating/results/${token}`),
 
   upload: async (file: File) => {
     const fd = new FormData()

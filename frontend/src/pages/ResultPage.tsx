@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '../api'
-import type { Submission, WorkflowForm } from '../types'
+import type { RestaurantRatingSubmission, RestaurantRatingForm } from '../types'
 import ResultCard from '../components/ResultCard'
 
 export default function ResultPage() {
   const { token } = useParams<{ token: string }>()
-  const [data, setData] = useState<{ form: WorkflowForm; submission: Submission } | null>(null)
+  const [data, setData] = useState<{ form: RestaurantRatingForm; submission: RestaurantRatingSubmission } | null>(null)
   const [notFound, setNotFound] = useState(false)
 
   useEffect(() => {
     if (!token) return
     api
-      .getResult(token)
+      .getRestaurantRatingResult(token)
       .then(setData)
       .catch(() => setNotFound(true))
   }, [token])

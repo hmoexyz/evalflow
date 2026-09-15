@@ -7,6 +7,7 @@ services:
 
   # 后端服务
   backend:
+    restart: always  # 设置容器随 Docker 服务启动而自动重启
     build:
       context: ./backend           # Dockerfile 所在目录
       dockerfile: Dockerfile          # 后端 Dockerfile
@@ -21,6 +22,7 @@ services:
 
   # Nginx 前端服务
   frontend:
+    restart: always  # 设置容器随 Docker 服务启动而自动重启
     image: nginx:latest               # LTS 版本
     container_name: frontend
     volumes:

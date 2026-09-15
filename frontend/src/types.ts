@@ -1,21 +1,21 @@
-export interface EvaluationItem {
+export interface RestaurantRatingItem {
   id: number
   name: string
   description: string
   created_at: string
 }
 
-export interface WorkflowForm {
+export interface RestaurantRatingForm {
   id: number
   name: string
   share_token?: string
   published: boolean
   created_at: string
   item_count?: number
-  items?: EvaluationItem[]
+  items?: RestaurantRatingItem[]
 }
 
-export interface ScoreEntry {
+export interface RestaurantRatingScore {
   item_id: number
   item_name: string
   score: number
@@ -23,7 +23,7 @@ export interface ScoreEntry {
   passed: boolean
 }
 
-export interface Submission {
+export interface RestaurantRatingSubmission {
   id: number
   form_id: number
   view_token?: string
@@ -31,7 +31,7 @@ export interface Submission {
   evaluator: string
   form_name?: string
   created_at: string
-  scores: ScoreEntry[]
+  scores: RestaurantRatingScore[]
   total_score: number
   max_score: number
   passed_count: number
