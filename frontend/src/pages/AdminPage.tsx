@@ -92,9 +92,6 @@ export default function AdminPage() {
               }`
             }
           >
-            <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11 3v18m0-18c-2.5 0-4 2-4 4.5S8.5 10 11 10m0-7c2.5 0 4 2 4 4.5S13.5 10 11 10m8 0v11M7 14h8" />
-            </svg>
             <span className="whitespace-nowrap">餐厅评分</span>
           </NavLink>
         </nav>
@@ -140,8 +137,8 @@ export default function AdminPage() {
             </button>
             {(
               [
-                ['items', '评估项'],
                 ['forms', '流程表'],
+                ['items', '评估项'],
                 ['results', '评估结果'],
               ] as const
             ).map(([key, label]) => (

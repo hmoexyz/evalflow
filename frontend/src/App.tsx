@@ -32,11 +32,11 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<LoginRoute />} />
         <Route path="/admin" element={<AdminRoute />}>
-          <Route index element={<Navigate to="restaurant-rating/items" replace />} />
+          <Route index element={<Navigate to="restaurant-rating/forms" replace />} />
           <Route path="restaurant-rating">
-            <Route index element={<Navigate to="items" replace />} />
-            <Route path="items" element={<ItemsTab />} />
+            <Route index element={<Navigate to="forms" replace />} />
             <Route path="forms" element={<FormsTab />} />
+            <Route path="items" element={<ItemsTab />} />
             <Route path="results" element={<ResultsTab />} />
           </Route>
         </Route>

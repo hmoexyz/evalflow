@@ -11,6 +11,10 @@ export default function FormsTab() {
   const [formName, setFormName] = useState('')
   const [selectedIds, setSelectedIds] = useState<number[]>([])
   const [itemQuery, setItemQuery] = useState('')
+  const [newItemOpen, setNewItemOpen] = useState(false)
+  const [newItemName, setNewItemName] = useState('')
+  const [newItemDesc, setNewItemDesc] = useState('')
+  const [creatingItem, setCreatingItem] = useState(false)
   const [viewing, setViewing] = useState<RestaurantRatingForm | null>(null)
   const [submissions, setSubmissions] = useState<RestaurantRatingSubmission[]>([])
   const [copiedId, setCopiedId] = useState<number | null>(null)
@@ -30,6 +34,7 @@ export default function FormsTab() {
     setFormName('')
     setSelectedIds([])
     setItemQuery('')
+    resetNewItem()
   }
 
   function openEdit(form: RestaurantRatingForm) {
@@ -37,6 +42,28 @@ export default function FormsTab() {
     setFormName(form.name)
     setSelectedIds((form.items ?? []).map((it) => it.id))
     setItemQuery('')
+    resetNewItem()
+  }
+
+  function resetNewItem() {
+    setNewItemOpen(false)
+    setNewItemName('')
+    setNewItemDesc('')
+    setCreatingItem(false)
+  }
+
+  async function handleCreateItem() {
+    setError('')
+    setCreatingItem(true)
+    try {
+      const item = await api.createRestaurantRatingItem(newItemName.trim(), newItemDesc.trim())
+      setItems((prev) => [item, ...prev])
+      setSelectedIds((prev) => [...prev, item.id])
+      resetNewItem()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '创建评估项失败')
+      setCreatingItem(false)
+    }
   }
 
   const visibleItems = itemQuery.trim()
@@ -121,7 +148,7 @@ export default function FormsTab() {
             <p className="text-sm text-slate-600 mb-2">包含的评估项（按勾选顺序排列）</p>
             {items.length === 0 ? (
               <p className="text-sm text-slate-400 py-4 text-center border border-dashed border-slate-200 rounded-lg">
-                暂无评估项，请先在「评估项」页签中创建
+                暂无评估项，可在下方直接新建
               </p>
             ) : (
               <>
@@ -147,7 +174,7 @@ export default function FormsTab() {
                     没有匹配的评估项
                   </p>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 gap-2">
                     {visibleItems.map((item) => (
                       <label
                         key={item.id}
@@ -176,6 +203,56 @@ export default function FormsTab() {
               </>
             )}
             <p className="mt-2 text-xs text-slate-400">已选 {selectedIds.length} 项</p>
+
+            <div className="mt-3 rounded-lg border border-dashed border-slate-300 p-3">
+              {newItemOpen ? (
+                <div className="space-y-2">
+                  <input
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                    placeholder="评估项名称，如：卫生状况"
+                    autoFocus
+                    className="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                  <textarea
+                    value={newItemDesc}
+                    onChange={(e) => setNewItemDesc(e.target.value)}
+                    placeholder="说明（可选）"
+                    rows={2}
+                    className="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleCreateItem}
+                      disabled={!newItemName.trim() || creatingItem}
+                      className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {creatingItem ? '添加中…' : '添加并勾选'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={resetNewItem}
+                      disabled={creatingItem}
+                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                    >
+                      取消
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setNewItemOpen(true)}
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                  新建评估项
+                </button>
+              )}
+            </div>
           </div>
           <div className="mt-5 flex gap-2">
             <button
