@@ -84,7 +84,7 @@ export default function AdminPage() {
         </div>
         <nav className="flex-1 p-3 space-y-1">
           <NavLink
-            to="/admin/restaurant-rating/items"
+            to="/admin/restaurant-rating"
             onClick={() => setSidebarOpen(false)}
             className={({ isActive }) =>
               `w-full flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${

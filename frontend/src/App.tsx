@@ -33,9 +33,12 @@ export default function App() {
         <Route path="/login" element={<LoginRoute />} />
         <Route path="/admin" element={<AdminRoute />}>
           <Route index element={<Navigate to="restaurant-rating/items" replace />} />
-          <Route path="restaurant-rating/items" element={<ItemsTab />} />
-          <Route path="restaurant-rating/forms" element={<FormsTab />} />
-          <Route path="restaurant-rating/results" element={<ResultsTab />} />
+          <Route path="restaurant-rating">
+            <Route index element={<Navigate to="items" replace />} />
+            <Route path="items" element={<ItemsTab />} />
+            <Route path="forms" element={<FormsTab />} />
+            <Route path="results" element={<ResultsTab />} />
+          </Route>
         </Route>
         <Route path="/share/:token" element={<SharePage />} />
         <Route path="/result/:token" element={<ResultPage />} />
